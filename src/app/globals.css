@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+:root {
+  color-scheme: light;
+  --background: oklch(98.5% 0 0);
+  --foreground: oklch(21% 0.006 286);
+  --muted: oklch(55% 0.014 286);
+  --surface: oklch(96% 0.003 286);
+  --border: oklch(91% 0.004 286);
+  --accent: oklch(58% 0.22 275);
+  --accent-2: oklch(70% 0.17 200);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(14% 0.005 286);
+  --foreground: oklch(96% 0.002 286);
+  --muted: oklch(70% 0.012 286);
+  --surface: oklch(20% 0.006 286);
+  --border: oklch(27% 0.008 286);
+  --accent: oklch(72% 0.17 275);
+  --accent-2: oklch(80% 0.13 200);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-2: var(--accent-2);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+::selection {
+  background: color-mix(in oklch, var(--accent) 35%, transparent);
+}
+
+/* Theme toggle icons */
+.theme-icon-moon { display: none; }
+[data-theme="dark"] .theme-icon-sun { display: none; }
+[data-theme="dark"] .theme-icon-moon { display: block; }
+
+/* Animated gradient headline */
+.text-gradient {
+  background: linear-gradient(90deg, var(--foreground), var(--accent), var(--accent-2), var(--foreground));
+  background-size: 300% 100%;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-pan 8s ease-in-out infinite alternate;
+}
+
+@keyframes gradient-pan {
+  to { background-position: 100% 0; }
+}
+
+/* Aurora backdrop */
+.aurora {
+  position: absolute;
+  inset: -20% -10% auto;
+  height: 80vh;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 50% at 20% 30%, color-mix(in oklch, var(--accent) 35%, transparent), transparent 70%),
+    radial-gradient(35% 45% at 80% 20%, color-mix(in oklch, var(--accent-2) 30%, transparent), transparent 70%);
+  filter: blur(60px);
+  animation: aurora-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes aurora-drift {
+  to { transform: translate3d(0, 4%, 0) scale(1.08) rotate(3deg); }
+}
+
+.grid-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 100%);
+  opacity: 0.6;
+}
+
+/* Cursor-following spotlight on cards */
+.spotlight-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid var(--border);
+  background: color-mix(in oklch, var(--surface) 60%, transparent);
+  transition: border-color 0.3s, transform 0.3s;
+}
+
+.spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background: radial-gradient(400px circle at var(--x, 50%) var(--y, 50%), color-mix(in oklch, var(--accent) 18%, transparent), transparent 60%);
+  transition: opacity 0.3s;
+}
+
+.spotlight-card:hover {
+  border-color: color-mix(in oklch, var(--accent) 45%, var(--border));
+  transform: translateY(-2px);
+}
+
+.spotlight-card:hover::before {
+  opacity: 1;
+}
+
+/* Popover-based mobile menu with entry/exit transitions */
+.mobile-nav {
+  inset: 4.5rem 1rem auto auto;
+  width: min(18rem, calc(100vw - 2rem));
+  margin: 0;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: color-mix(in oklch, var(--background) 85%, transparent);
+  color: var(--foreground);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 50px -20px rgb(0 0 0 / 0.4);
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+  transition: opacity 0.2s, transform 0.2s, overlay 0.2s allow-discrete, display 0.2s allow-discrete;
+}
+
+.mobile-nav:popover-open {
+  opacity: 1;
+  transform: none;
+}
+
+@starting-style {
+  .mobile-nav:popover-open {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
+/* Theme change cross-fade via View Transitions API */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.4s;
+}
+
+/* Scroll-driven reveal; progressive enhancement */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
